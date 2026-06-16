@@ -103,12 +103,14 @@
   .blk li{padding-left:16px;position:relative;margin:5px 0}
   .blk li::before{content:"›";position:absolute;left:0;color:var(--signal)}
   .actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
-  button.act{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;
-    cursor:pointer;border:1px solid var(--line);background:#141b19;color:var(--bone);padding:10px 16px;border-radius:2px;transition:.12s}
-  button.act:hover{border-color:var(--signal);color:var(--signal)}
-  button.act:disabled{opacity:.5;cursor:wait}
-  button.act.primary{background:var(--signal);color:#10100c;border-color:var(--signal)}
-  button.act.primary:hover{filter:brightness(1.1);color:#10100c}
+  .act{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;
+    cursor:pointer;border:1px solid var(--line);background:#141b19;color:var(--bone);padding:10px 16px;border-radius:2px;
+    transition:.12s;text-decoration:none;display:inline-block;line-height:1.1}
+  .act:hover{border-color:var(--signal);color:var(--signal)}
+  .act:disabled{opacity:.5;cursor:wait}
+  .act.primary{background:var(--signal);color:#10100c;border-color:var(--signal)}
+  .act.primary:hover{filter:brightness(1.1);color:#10100c}
+  .act.li{border-color:#2a4a63;color:#7fb4dd} .act.li:hover{border-color:#7fb4dd;color:#9fcdf0}
   .kw{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);
     border:1px solid var(--line);padding:2px 8px;border-radius:1px;margin:3px 4px 0 0}
   .pre{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;line-height:1.6;color:var(--bone)}
@@ -181,6 +183,7 @@ let JOBS=[], SEL=null;
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2800)};
 const pad=n=>String(n).padStart(3,'0');
+const liq=s=>encodeURIComponent(s||'');
 
 function meterBars(v){v=v||0;const filled=Math.round(v/10);
   let cls=v>=70?'go':v>=50?'':'lo';
@@ -242,6 +245,15 @@ async function open_(id){SEL=id;loadJobs();
     </div>
     <div class="blk"><h4>Fit assessment</h4><ul>${(s.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
     <div class="blk"><h4>Gaps</h4><ul>${(s.gaps||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
+    <div class="blk"><h4>Network — find people to message at ${esc(j.company)}</h4>
+      <div class="actions">
+        <a class="act li" target="_blank" rel="noopener" href="https://www.linkedin.com/search/results/people/?keywords=${liq(j.company)}">People at ${esc(j.company)} ↗</a>
+        <a class="act li" target="_blank" rel="noopener" href="https://www.linkedin.com/search/results/people/?keywords=${liq(j.company+' recruiter')}">Recruiters ↗</a>
+        <a class="act li" target="_blank" rel="noopener" href="https://www.linkedin.com/search/results/people/?keywords=${liq(j.company+' engineering manager')}">Hiring managers ↗</a>
+        <a class="act li" target="_blank" rel="noopener" href="https://www.google.com/search?q=${liq('site:linkedin.com/in '+j.company+' software engineer')}">Google ↗</a>
+      </div>
+      <div class="lbl" style="margin-top:4px">Opens LinkedIn/Google search in your browser — you browse &amp; message manually. No automation, your account stays safe.</div>
+    </div>
     <div class="blk">
       <div class="actions">
         <button class="act primary" id="tb" onclick="tailor(${id})">Tailor my résumé</button>
