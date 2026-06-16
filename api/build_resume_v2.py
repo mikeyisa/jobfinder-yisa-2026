@@ -126,7 +126,7 @@ bullet(d, "Trained a CatBoost churn model on RFM features and wired the dashboar
 
 heading(d, "Projects")
 p = d.add_paragraph(); r = p.add_run("JobFinder — Agentic Job-Search Platform"); r.bold = True
-p.add_run("   ("); add_hyperlink(p, "https://github.com/mikeyisa", "github.com/mikeyisa", size=10)
+p.add_run("   ("); add_hyperlink(p, "https://github.com/mikeyisa/jobfinder-yisa-2026", "github.com/mikeyisa/jobfinder-yisa-2026", size=10)
 p.add_run(")")
 bullet(d, "Built a multi-agent system in FastAPI and the Claude API that pulls live job "
           "postings, scores each against my resume, rewrites the resume for the role, and "

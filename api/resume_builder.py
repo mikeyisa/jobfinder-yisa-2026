@@ -23,7 +23,7 @@ JR_BULLETS = [
     "into Azure Data Lake for dynamic reporting.",
 ]
 PROJECTS = [
-    ("JobFinder — Agentic Job-Search Platform", "https://github.com/mikeyisa",
+    ("JobFinder — Agentic Job-Search Platform", "https://github.com/mikeyisa/jobfinder-yisa-2026",
      ["Built a multi-agent system in FastAPI and the Claude API that pulls live job "
       "postings, scores each against my résumé, rewrites the résumé for the role, and "
       "drafts recruiter outreach.",
