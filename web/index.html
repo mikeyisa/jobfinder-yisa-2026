@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JOBFINDER // YISA RECON CONSOLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0b0f0e; --panel:#111716; --panel2:#0d1211; --line:#243430;
+    --bone:#ece9df; --dim:#869089; --signal:#ff6a3d; --go:#8fb56a;
+    --warn:#e0a23b; --red:#11100d;
+    --disp:"Saira Condensed",sans-serif; --body:"IBM Plex Sans",sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--void);color:var(--bone);font-family:var(--body);font-size:14px;line-height:1.55;
+    background-image:linear-gradient(rgba(255,106,61,.025) 1px,transparent 1px);background-size:100% 4px}
+  .mono{font-family:var(--mono)}
+  .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+  ::selection{background:var(--signal);color:#10100c}
+
+  /* ---- HUD bar ---- */
+  header{display:flex;align-items:stretch;justify-content:space-between;gap:18px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0e1413,#0b0f0e);
+    position:sticky;top:0;z-index:9}
+  .hud-id{display:flex;align-items:center;gap:14px;padding:14px 22px;border-right:1px solid var(--line)}
+  .glyph{width:30px;height:30px;flex:none;border:1.5px solid var(--signal);border-radius:50%;position:relative}
+  .glyph::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--signal);
+    box-shadow:0 0 14px var(--signal);animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.05)}}
+  .hud-id h1{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:.04em;margin:0;line-height:1}
+  .hud-id .tag{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+  .hud-meta{display:flex;align-items:center;gap:0;flex:1;overflow:hidden}
+  .meta-cell{padding:10px 18px;border-right:1px solid var(--line);min-width:0}
+  .meta-cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+  .meta-cell .v{font-family:var(--disp);font-size:16px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v.on{color:var(--go)} .v.off{color:var(--warn)}
+  .hud-act{display:flex;align-items:center;padding:0 18px}
+  .sweep{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase;
+    cursor:pointer;border:1px solid var(--signal);background:transparent;color:var(--signal);
+    padding:11px 20px;border-radius:2px;transition:.15s;display:flex;align-items:center;gap:9px}
+  .sweep:hover{background:var(--signal);color:#10100c;box-shadow:0 0 22px -4px var(--signal)}
+  .sweep:disabled{opacity:.5;cursor:wait}
+  .sweep::before{content:"▸"}
+
+  /* ---- layout ---- */
+  main{display:grid;grid-template-columns:minmax(380px,1fr) minmax(440px,1.32fr);gap:0}
+  @media(max-width:1000px){main{grid-template-columns:1fr}}
+  .panel{padding:18px 22px}
+  .panel.targets{border-right:1px solid var(--line);min-height:70vh}
+  .sect-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .sect-head .num{font-family:var(--mono);color:var(--signal);font-size:11px;letter-spacing:.14em}
+  .sect-head h2{font-family:var(--disp);font-weight:600;font-size:17px;letter-spacing:.1em;text-transform:uppercase;margin:0}
+  .sect-head .rule{flex:1;height:1px;background:var(--line);align-self:center}
+
+  /* ---- target rows ---- */
+  .targets-list{display:flex;flex-direction:column}
+  .tgt{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:13px 8px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background .12s}
+  .tgt:hover{background:#141b19}
+  .tgt.sel{background:#161e1b;box-shadow:inset 3px 0 0 var(--signal)}
+  .tgt.dim{opacity:.46}
+  .tgt-idx{font-family:var(--mono);font-size:12px;color:var(--dim);padding-top:3px;letter-spacing:.05em}
+  .tgt.sel .tgt-idx{color:var(--signal)}
+  .tgt-org{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .tgt-title{font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:.01em;line-height:1.12;margin:1px 0 7px}
+  .redacted{position:relative;display:inline}
+  .redacted .rbar{display:inline-block;background:var(--red);color:transparent;padding:0 4px;
+    text-decoration:line-through;text-decoration-color:var(--dim);text-decoration-thickness:2px;border-radius:1px}
+  .reqtag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:#0b0f0e;background:var(--dim);
+    padding:2px 6px;border-radius:1px;vertical-align:middle;margin-left:6px;text-transform:uppercase}
+
+  /* ---- signal meter (the signature) ---- */
+  .meter{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .bars{display:flex;gap:2px}
+  .seg{width:11px;height:14px;background:#1c2522;border-radius:1px}
+  .seg.f{background:var(--signal)} .seg.f.go{background:var(--go)} .seg.f.lo{background:var(--warn)}
+  .fitnum{font-family:var(--disp);font-size:19px;line-height:1;letter-spacing:.02em}
+  .fitnum small{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.1em}
+
+  .stamps{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .stamp{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+    padding:2px 7px;border:1px solid var(--line);color:var(--dim);border-radius:1px}
+  .stamp.rec{color:var(--go);border-color:#3a5230} .stamp.cl{color:var(--signal);border-color:#5a3528}
+  .stamp.bad{color:#0b0f0e;background:var(--dim);border-color:var(--dim)}
+
+  /* ---- dossier ---- */
+  .dossier{min-height:60vh}
+  .empty{font-family:var(--mono);color:var(--dim);text-align:center;padding:70px 20px;letter-spacing:.08em;font-size:12px}
+  .dh{border:1px solid var(--line);border-left:3px solid var(--signal);padding:16px 18px;background:var(--panel2)}
+  .dh .crumb{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--signal);text-transform:uppercase}
+  .dh h3{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:.01em;margin:4px 0 6px;line-height:1.05}
+  .dh a{color:var(--bone);font-family:var(--mono);font-size:11px;letter-spacing:.06em;border-bottom:1px solid var(--signal)}
+  .readout{display:flex;align-items:center;gap:18px;border:1px solid var(--line);border-top:0;padding:14px 18px;background:var(--panel2);flex-wrap:wrap}
+  .bigfit{font-family:var(--disp);font-size:46px;line-height:.85;letter-spacing:.01em}
+  .blk{border:1px solid var(--line);border-top:0;padding:14px 18px;background:var(--panel2)}
+  .blk h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);margin:0 0 9px}
+  .blk h4::before{content:"// "}
+  .blk ul{margin:0;padding-left:0;list-style:none}
+  .blk li{padding-left:16px;position:relative;margin:5px 0}
+  .blk li::before{content:"›";position:absolute;left:0;color:var(--signal)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+  button.act{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;
+    cursor:pointer;border:1px solid var(--line);background:#141b19;color:var(--bone);padding:10px 16px;border-radius:2px;transition:.12s}
+  button.act:hover{border-color:var(--signal);color:var(--signal)}
+  button.act:disabled{opacity:.5;cursor:wait}
+  button.act.primary{background:var(--signal);color:#10100c;border-color:var(--signal)}
+  button.act.primary:hover{filter:brightness(1.1);color:#10100c}
+  .kw{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);
+    border:1px solid var(--line);padding:2px 8px;border-radius:1px;margin:3px 4px 0 0}
+  .pre{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;line-height:1.6;color:var(--bone)}
+  .teach{border-top:1px dashed var(--line);margin-top:12px;padding-top:11px}
+  .teach .hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);margin-bottom:7px}
+  .feed{display:flex;gap:8px}
+  input.field,textarea.field{font-family:var(--mono);font-size:12.5px;background:var(--void);border:1px solid var(--line);
+    color:var(--bone);padding:9px 11px;border-radius:2px;width:100%;resize:vertical}
+  input.field:focus,textarea.field:focus{outline:none;border-color:var(--signal)}
+
+  /* ---- intercepts (inbox) ---- */
+  .intercepts{border-top:1px solid var(--line);padding:18px 22px}
+  .icols{display:grid;grid-template-columns:1fr;gap:14px;max-width:1500px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:12px;
+    letter-spacing:.04em;background:#141b19;border:1px solid var(--signal);color:var(--bone);padding:10px 16px;
+    border-radius:2px;display:none;z-index:30;max-width:80vw}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid #ffffff33;border-top-color:var(--signal);
+    border-radius:50%;animation:s .7s linear infinite;vertical-align:-1px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hud-id">
+    <div class="glyph"></div>
+    <div><h1>JOBFINDER</h1><div class="tag">Yisa recon console // 2026</div></div>
+  </div>
+  <div class="hud-meta">
+    <div class="meta-cell"><div class="k">Operator</div><div class="v" id="opName">—</div></div>
+    <div class="meta-cell"><div class="k">Clearance</div><div class="v" style="color:var(--signal)">ELIGIBLE</div></div>
+    <div class="meta-cell"><div class="k">Engine</div><div class="v" id="opModel">—</div></div>
+    <div class="meta-cell"><div class="k">Claude link</div><div class="v off" id="opKey">—</div></div>
+    <div class="meta-cell"><div class="k">Targets</div><div class="v" id="opCount">000</div></div>
+  </div>
+  <div class="hud-act"><button class="sweep" id="runBtn" onclick="runPipeline()">Initiate sweep</button></div>
+</header>
+
+<main>
+  <section class="panel targets">
+    <div class="sect-head"><span class="num">[01]</span><h2>Targets</h2><span class="rule"></span>
+      <span class="lbl">ranked by fit</span></div>
+    <div id="targets" class="targets-list"></div>
+    <div id="targetsEmpty" class="empty">No targets acquired. Initiate a sweep to pull &amp; rank live roles.</div>
+  </section>
+
+  <section class="panel dossier">
+    <div class="sect-head"><span class="num">[02]</span><h2>Dossier</h2><span class="rule"></span></div>
+    <div id="dossier"><div class="empty">Select a target to open its fit assessment, tailored résumé, and outreach package.</div></div>
+  </section>
+</main>
+
+<section class="intercepts">
+  <div class="sect-head"><span class="num">[03]</span><h2>Intercepts</h2><span class="rule"></span>
+    <span class="lbl">paste recruiter/interview email · triage + drafted reply · never sends</span></div>
+  <div class="icols">
+    <textarea id="emailIn" class="field" style="min-height:104px" placeholder="// paste a recruiter or interview email here…"></textarea>
+    <div class="actions"><button class="act primary" id="orgBtn" onclick="organizeEmail()">Triage &amp; draft reply</button></div>
+    <div id="emailOut"></div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+let JOBS=[], SEL=null;
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2800)};
+const pad=n=>String(n).padStart(3,'0');
+
+function meterBars(v){v=v||0;const filled=Math.round(v/10);
+  let cls=v>=70?'go':v>=50?'':'lo';
+  let html='';for(let i=0;i<10;i++)html+=`<span class="seg ${i<filled?'f '+cls:''}"></span>`;
+  return `<div class="meter"><div class="bars">${html}</div>
+    <span class="fitnum">${v}<small>/100 FIT</small></span></div>`}
+
+function isMismatch(s){return s.seniority_match==='too_senior'||s.seniority_match==='too_junior'||s.clearance_signal==='active_required'}
+function titleHtml(title,s){
+  if(isMismatch(s))return `<span class="redacted"><span class="rbar">${esc(title)}</span><span class="reqtag">redacted // req mismatch</span></span>`;
+  return esc(title)}
+function stampHtml(s){const out=[];
+  if(s.recommend)out.push('<span class="stamp rec">▣ recommend</span>');
+  if(s.clearance_signal==='eligible_ok')out.push('<span class="stamp cl">clearance·eligible ok</span>');
+  if(s.clearance_signal==='active_required')out.push('<span class="stamp bad">needs active clearance</span>');
+  if(s.seniority_match==='too_senior')out.push('<span class="stamp bad">over-leveled</span>');
+  if(s.seniority_match==='too_junior')out.push('<span class="stamp bad">under-leveled</span>');
+  return out.join('')}
+
+async function loadStatus(){
+  const s=await (await fetch('/api/status')).json();
+  $('#opName').textContent=(s.candidate||'—').toUpperCase();
+  $('#opModel').textContent=s.model.replace('claude-','').toUpperCase();
+  const k=$('#opKey');k.textContent=s.claude_key?'ACTIVE':'OFFLINE';k.className='v '+(s.claude_key?'on':'off');
+}
+async function loadJobs(){
+  JOBS=await (await fetch('/api/jobs')).json();
+  $('#opCount').textContent=pad(JOBS.length);
+  const el=$('#targets'),emp=$('#targetsEmpty');
+  emp.style.display=JOBS.length?'none':'block';
+  el.innerHTML=JOBS.map((j,i)=>{const s=j.score||{};
+    return `<div class="tgt ${SEL===j.id?'sel':''} ${isMismatch(s)?'dim':''}" tabindex="0"
+      onclick="open_(${j.id})" onkeydown="if(event.key==='Enter')open_(${j.id})">
+      <div class="tgt-idx">${pad(i+1)}</div>
+      <div>
+        <div class="tgt-org">${esc(j.company)} · ${esc(j.location||'remote')} · ${j.source}</div>
+        <div class="tgt-title">${titleHtml(j.title,s)}</div>
+        ${meterBars(s.fit_score)}
+        <div class="stamps">${stampHtml(s)}</div>
+      </div></div>`}).join('');
+}
+
+async function open_(id){SEL=id;loadJobs();
+  const d=$('#dossier');d.innerHTML='<div class="empty"><span class="spin"></span> retrieving dossier…</div>';
+  const j=await (await fetch('/api/jobs/'+id)).json();const s=j.score||{};
+  const rank=JOBS.findIndex(x=>x.id===id)+1;
+  d.innerHTML=`
+    <div class="dh">
+      <div class="crumb">Target ${pad(rank)} // ${esc(j.company)} · ${j.source}</div>
+      <h3>${esc(j.title)}</h3>
+      <a href="${j.url}" target="_blank" rel="noopener">open source posting ↗</a>
+    </div>
+    <div class="readout">
+      <div class="bigfit">${s.fit_score??'––'}</div>
+      <div>${meterBars(s.fit_score)}<div class="stamps">${stampHtml(s)||'<span class="stamp">unscored</span>'}</div></div>
+    </div>
+    <div class="blk"><h4>Fit assessment</h4><ul>${(s.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
+    <div class="blk"><h4>Gaps</h4><ul>${(s.gaps||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
+    <div class="blk">
+      <div class="actions">
+        <button class="act primary" id="tb" onclick="tailor(${id})">Tailor my résumé</button>
+        <button class="act" id="ob" onclick="outreach(${id})">Draft outreach email</button>
+      </div>
+      <div id="tailored">${renderTailored(j.tailored)}</div>
+      <div id="outreach">${renderOutreach(j.outreach)}</div>
+    </div>`;
+}
+
+function renderTailored(t){if(!t)return'';return `
+  <div class="blk" style="margin-top:4px"><h4>Tailored résumé package</h4>
+    <div style="font-family:var(--disp);font-size:18px;letter-spacing:.01em">${esc(t.headline)}</div>
+    <p style="color:var(--dim);margin:6px 0">${esc(t.summary)}</p>
+    <ul>${(t.bullets||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <div style="margin-top:8px">${(t.keywords||[]).map(k=>`<span class="kw">${esc(k)}</span>`).join('')}</div>
+    <div class="teach">
+      <div class="hint">✦ TEACH THE SHAPER — it remembers every tweak and applies it to all future résumés</div>
+      <div class="feed">
+        <input id="teachIn" class="field" placeholder="e.g. shorter bullets · lead with AWS · drop buzzwords"/>
+        <button class="act" onclick="teachShaper()">Teach &amp; re-tailor</button>
+      </div></div></div>`}
+function teachShaper(){const fb=($('#teachIn')||{}).value||'';tailor(SEL,fb)}
+
+function renderOutreach(o){if(!o)return'';return `
+  <div class="blk" style="margin-top:4px"><h4>Outreach package · send from your application inbox</h4>
+    <div class="lbl" style="margin-bottom:6px">to: ${esc(o.contact_target)} · channel: ${esc(o.channel||'email')}</div>
+    <div style="margin:6px 0"><b>SUBJ:</b> ${esc(o.subject)}</div>
+    <div class="pre">${esc(o.message)}</div></div>`}
+
+async function tailor(id,fb){const b=$('#tb');if(b){b.disabled=true;b.innerHTML='<span class="spin"></span> tailoring…'}
+  if(fb)toast('Learned: "'+fb+'" — applied here and to all future résumés');
+  const r=await (await fetch('/api/jobs/'+id+'/tailor',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({feedback:fb||''})})).json();
+  $('#tailored').innerHTML=renderTailored(r);if(b){b.disabled=false;b.textContent='Tailor my résumé'}loadJobs()}
+async function outreach(id,fb){const b=$('#ob');if(b){b.disabled=true;b.innerHTML='<span class="spin"></span> drafting…'}
+  const r=await (await fetch('/api/jobs/'+id+'/outreach',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({feedback:fb||''})})).json();
+  $('#outreach').innerHTML=renderOutreach(r);if(b){b.disabled=false;b.textContent='Draft outreach email'}loadJobs()}
+
+async function runPipeline(){const b=$('#runBtn');b.disabled=true;b.innerHTML='<span class="spin"></span> sweeping…';
+  try{const r=await (await fetch('/api/run',{method:'POST'})).json();
+    toast(`Sweep complete · ${r.ingested} new acquired · ${r.scored} assessed by Claude`);await loadJobs();}
+  catch(e){toast('Sweep failed: '+e)}finally{b.disabled=false;b.innerHTML='Initiate sweep'}}
+
+async function organizeEmail(){const b=$('#orgBtn'),txt=$('#emailIn').value.trim();
+  if(!txt){toast('Paste an email first');return}
+  b.disabled=true;b.innerHTML='<span class="spin"></span> triaging…';
+  try{const r=await (await fetch('/api/email/organize',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:txt})})).json();
+    const pc=r.priority==='high'?'var(--signal)':r.priority==='medium'?'var(--warn)':'var(--go)';
+    $('#emailOut').innerHTML=`<div class="blk"><h4>Intercept triage</h4>
+      <div class="stamps" style="margin-bottom:8px">
+        <span class="stamp" style="color:${pc};border-color:${pc}">${r.priority} priority</span>
+        <span class="stamp">${esc(r.category).replace(/_/g,' ')}</span>
+        <span class="stamp">label · ${esc(r.label)}</span>
+        <span class="stamp">${r.needs_reply?'reply advised':'no reply needed'}</span></div>
+      <p style="color:var(--dim);margin:0 0 8px">${esc(r.action)}</p>
+      ${r.draft_reply?`<h4>Drafted reply</h4><div class="pre">${esc(r.draft_reply)}</div>`:''}</div>`;
+  }catch(e){toast('Triage failed: '+e)}finally{b.disabled=false;b.innerHTML='Triage & draft reply'}}
+
+loadStatus();loadJobs();
+</script>
+</body>
+</html>

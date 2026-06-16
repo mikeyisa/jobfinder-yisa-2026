@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jobfinder
+      POSTGRES_PASSWORD: jobfinder
+      POSTGRES_DB: jobfinder
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobfinder"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://jobfinder:jobfinder@db:5432/jobfinder
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      MODEL: ${MODEL:-claude-opus-4-8}
+      DATA_DIR: /app/api/data
+      APPLICATION_EMAIL: ${APPLICATION_EMAIL:-michael.apply.2026@gmail.com}
+    volumes:
+      - ./data:/app/api/data   # resume + sqlite-free; keeps history on host
+    ports:
+      - "8010:8000"   # 8000 is taken by the yisa-trading engine; JobFinder = 8010
+
+volumes:
+  pgdata:
