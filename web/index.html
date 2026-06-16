@@ -246,6 +246,7 @@ async function open_(id){SEL=id;loadJobs();
       <div class="actions">
         <button class="act primary" id="tb" onclick="tailor(${id})">Tailor my résumé</button>
         <button class="act" id="ob" onclick="outreach(${id})">Draft outreach email</button>
+        <a class="act" href="${j.url}" target="_blank" rel="noopener" style="text-decoration:none">Open posting ↗</a>
       </div>
       <div id="tailored">${renderTailored(j.tailored)}</div>
       <div id="outreach">${renderOutreach(j.outreach)}</div>
@@ -258,6 +259,9 @@ function renderTailored(t){if(!t)return'';return `
     <p style="color:var(--dim);margin:6px 0">${esc(t.summary)}</p>
     <ul>${(t.bullets||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
     <div style="margin-top:8px">${(t.keywords||[]).map(k=>`<span class="kw">${esc(k)}</span>`).join('')}</div>
+    <div style="margin-top:12px">
+      <a class="act primary" href="/api/jobs/${SEL}/resume.docx" style="text-decoration:none;display:inline-block">⬇ Download full tailored résumé (.docx)</a>
+    </div>
     <div class="teach">
       <div class="hint">✦ TEACH THE SHAPER — it remembers every tweak and applies it to all future résumés</div>
       <div class="feed">

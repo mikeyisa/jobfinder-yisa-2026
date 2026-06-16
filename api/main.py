@@ -10,6 +10,7 @@ import config
 import geo
 import llm
 import pipeline
+import resume_builder
 from db import init_db, get_db
 from models import Job, Score, TailoredResume, Outreach, StyleNote
 from resume_parser import resume_text
@@ -136,6 +137,24 @@ def api_tailor(job_id: int, body: FeedbackIn = FeedbackIn(), db: Session = Depen
                           bullets=r["bullets"], keywords=r["keywords"], model=config.MODEL))
     db.commit()
     return r
+
+
+@app.get("/api/jobs/{job_id}/resume.docx")
+def api_resume_docx(job_id: int, db: Session = Depends(get_db)):
+    """Build + download the FULL tailored résumé as a .docx for this job."""
+    job = db.get(Job, job_id)
+    if not job:
+        raise HTTPException(404, "job not found")
+    if not job.tailored:
+        raise HTTPException(400, "Tailor the résumé first, then download.")
+    t = job.tailored[-1]
+    path = resume_builder.build(
+        {"headline": t.headline, "summary": t.summary, "bullets": t.bullets,
+         "keywords": t.keywords},
+        {"company": job.company, "title": job.title, "id": job.id})
+    return FileResponse(
+        path, filename=path.name,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @app.post("/api/jobs/{job_id}/outreach")
