@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import config
+import geo
 import llm
 import pipeline
 from db import init_db, get_db
@@ -54,9 +55,11 @@ def api_run(db: Session = Depends(get_db)):
 # ---- jobs -------------------------------------------------------------------
 def _job_dict(job: Job) -> dict:
     s = job.score
+    loc_score, proximity = geo.proximity(job.location or "")
     return {
         "id": job.id, "source": job.source, "company": job.company,
         "title": job.title, "location": job.location, "url": job.url,
+        "location_score": loc_score, "proximity": proximity,
         "prefilter_score": job.prefilter_score, "too_senior": job.too_senior,
         "score": None if not s else {
             "fit_score": s.fit_score, "recommend": s.recommend,
@@ -75,11 +78,14 @@ def api_jobs(scored_only: bool = True, db: Session = Depends(get_db)):
     if scored_only:
         q = q.join(Score)
     jobs = q.all()
-    # rank: recommended + fit desc, scored above unscored
-    jobs.sort(key=lambda j: (
-        -(j.score.fit_score if j.score else -1),
-        not (j.score.recommend if j.score else False),
-    ))
+
+    def rank(j):
+        fit = j.score.fit_score if j.score else -1
+        loc = geo.proximity(j.location or "")[0]
+        rec = j.score.recommend if j.score else False
+        blended = fit * 0.62 + loc * 0.38          # fit-led, but proximity matters
+        return (not rec, -blended)                  # recommended first, then blended
+    jobs.sort(key=rank)
     return [_job_dict(j) for j in jobs]
 
 

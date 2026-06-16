@@ -34,23 +34,31 @@ CANDIDATE_NAME = os.getenv("CANDIDATE_NAME", "Michael Yisa")
 # Your real situation, fed to the scorer so it targets correctly.
 CANDIDATE_CONTEXT = os.getenv(
     "CANDIDATE_CONTEXT",
-    "U.S. citizen (naturalized), no security clearance yet but fully clearance-"
-    "ELIGIBLE (no disqualifiers). Target roles that sponsor clearance or accept "
-    "'clearance eligible'. Early-career: ~6 months full-time SWE + internships, "
-    "Dec 2025 CS grad. Do NOT recommend roles requiring an ACTIVE clearance or "
-    "5+ years experience.",
+    "U.S. citizen (naturalized), clearance-ELIGIBLE (no active clearance, no "
+    "disqualifiers). Early-career: ~6 months full-time SWE + internships, Dec 2025 "
+    "CS grad. OPEN TO TWO LANES, both valid: (1) cleared/defense/govtech roles that "
+    "sponsor or accept 'clearance eligible' — a bonus tier, and (2) regular "
+    "junior/mid software engineer roles at any good company. Score strong junior/mid "
+    "SWE roles highly even when they have nothing to do with defense. Clearance is a "
+    "PLUS, never a requirement. Do NOT recommend roles needing an ACTIVE clearance or "
+    "5+ years / senior+ experience. Location preference (closer is better): Austin, "
+    "then Houston/Dallas/Texas, Atlanta, New York, New Jersey, Oregon, Arizona, "
+    "Colorado, US-remote; deprioritize international.",
 )
 
 # --- pipeline knobs ----------------------------------------------------------
 # Only the top-N pre-filtered jobs get sent to Claude (controls cost + latency).
-SCORE_TOP_N = int(os.getenv("SCORE_TOP_N", "15"))
-# Keywords that define the niche, used by the cheap heuristic pre-filter.
+SCORE_TOP_N = int(os.getenv("SCORE_TOP_N", "20"))
+# Keywords the cheap heuristic pre-filter rewards (broad SWE + the clearance niche).
 NICHE_KEYWORDS = [
-    "software engineer", "backend", "full stack", "full-stack", ".net", "c#",
-    "python", "aws", "cloud", "api", "data", "ml", "ai", "platform",
-    "clearance", "secret", "ts/sci", "defense", "govtech",
+    "software engineer", "developer", "backend", "front end", "frontend",
+    "full stack", "full-stack", ".net", "c#", "python", "java", "javascript",
+    "typescript", "react", "node", "aws", "cloud", "api", "data", "ml", "ai",
+    "platform", "new grad", "early career", "associate", "graduate", "entry",
+    "engineer i", "engineer ii", "clearance", "secret", "defense", "govtech",
 ]
 SENIOR_FLAGS = [
-    "senior", "staff", "principal", "lead", "manager", "director", " vp",
-    "head of", " iii", " iv", "architect", "10+", "8+ years", "7+ years",
+    "senior", "sr.", "sr ", "staff", "principal", "lead", "manager", "director",
+    " vp", "head of", "fellow", " iii", " iv", "architect", "10+", "8+ years",
+    "7+ years",
 ]

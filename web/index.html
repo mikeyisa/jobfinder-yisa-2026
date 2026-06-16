@@ -192,6 +192,9 @@ function isMismatch(s){return s.seniority_match==='too_senior'||s.seniority_matc
 function titleHtml(title,s){
   if(isMismatch(s))return `<span class="redacted"><span class="rbar">${esc(title)}</span><span class="reqtag">redacted // req mismatch</span></span>`;
   return esc(title)}
+function proxStamp(j){const v=j.location_score||0,t=esc(j.proximity||'');
+  const c=v>=84?'var(--go)':v>=55?'var(--signal)':v>=30?'var(--warn)':'var(--dim)';
+  return `<span class="stamp" style="color:${c};border-color:${c}">⌖ ${t}</span>`}
 function stampHtml(s){const out=[];
   if(s.recommend)out.push('<span class="stamp rec">▣ recommend</span>');
   if(s.clearance_signal==='eligible_ok')out.push('<span class="stamp cl">clearance·eligible ok</span>');
@@ -219,7 +222,7 @@ async function loadJobs(){
         <div class="tgt-org">${esc(j.company)} · ${esc(j.location||'remote')} · ${j.source}</div>
         <div class="tgt-title">${titleHtml(j.title,s)}</div>
         ${meterBars(s.fit_score)}
-        <div class="stamps">${stampHtml(s)}</div>
+        <div class="stamps">${proxStamp(j)}${stampHtml(s)}</div>
       </div></div>`}).join('');
 }
 
@@ -235,7 +238,7 @@ async function open_(id){SEL=id;loadJobs();
     </div>
     <div class="readout">
       <div class="bigfit">${s.fit_score??'––'}</div>
-      <div>${meterBars(s.fit_score)}<div class="stamps">${stampHtml(s)||'<span class="stamp">unscored</span>'}</div></div>
+      <div>${meterBars(s.fit_score)}<div class="stamps">${proxStamp(j)}${stampHtml(s)||'<span class="stamp">unscored</span>'}</div></div>
     </div>
     <div class="blk"><h4>Fit assessment</h4><ul>${(s.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
     <div class="blk"><h4>Gaps</h4><ul>${(s.gaps||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>

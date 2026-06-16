@@ -21,15 +21,22 @@ SCHEMA = {
 }
 
 INSTRUCTION = (
-    "Score how well THIS candidate fits the job description below.\n"
-    "- fit_score 0-100 (be realistic; reserve 80+ for genuinely strong matches).\n"
-    "- clearance_signal: 'active_required' if the role needs an ACTIVE clearance "
-    "the candidate lacks; 'eligible_ok' if clearance-eligible/sponsorable is fine; "
-    "'none' if clearance is irrelevant.\n"
-    "- seniority_match: 'too_senior' if it needs 5+ yrs / senior+, 'too_junior' if "
-    "below the candidate, else 'good'.\n"
-    "- recommend = true only if seniority_match='good', clearance_signal != "
-    "'active_required', and fit_score >= 60.\n"
+    "Score how well THIS candidate fits the job description below. The candidate "
+    "wants BOTH defense/cleared roles AND regular junior/mid SWE roles — judge a "
+    "good non-defense junior/mid software role just as favorably as a defense one. "
+    "Do not penalize a role for being non-defense.\n"
+    "- fit_score 0-100. Give 70+ to solid junior/mid SWE roles that match the "
+    "candidate's .NET / Python / AWS / full-stack background at an appropriate level. "
+    "Reserve 85+ for excellent fits.\n"
+    "- clearance_signal: 'active_required' if the role needs an ACTIVE clearance the "
+    "candidate lacks; 'eligible_ok' if clearance-eligible/sponsorable is accepted; "
+    "'none' if clearance is irrelevant (most commercial roles). Clearance is a BONUS, "
+    "never required for a high score.\n"
+    "- seniority_match: 'too_senior' if it needs 5+ yrs / senior / staff / principal; "
+    "'too_junior' only if clearly below the candidate; else 'good' (entry, new-grad, "
+    "associate, mid, 'I', 'II' all count as good).\n"
+    "- recommend = true if seniority_match='good', clearance_signal != "
+    "'active_required', and fit_score >= 58.\n"
     "- reasons: 2-4 concrete fit points. gaps: missing/weak areas. summary: one line."
 )
 

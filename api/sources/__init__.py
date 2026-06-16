@@ -2,14 +2,26 @@
 automating those risks the candidate's own accounts."""
 from . import greenhouse, lever
 
-# (source_module, company_token) — verified live during build.
+# (source_module, company_token) — all verified live. Two lanes:
+# mainstream/junior-friendly (often Texas/in-geo + remote) AND the defense niche.
 SEED_BOARDS = [
-    (greenhouse, "anthropic"),      # AI / cloud
+    # --- mainstream SWE, lots of junior/mid + in-geo/remote roles ---
+    (greenhouse, "samsara"),        # IoT/cloud — big, many US roles
+    (greenhouse, "gusto"),          # fintech/HR — junior-friendly
+    (greenhouse, "robinhood"),      # fintech
+    (greenhouse, "affirm"),         # fintech — mostly remote US
+    (greenhouse, "coinbase"),       # remote US heavy
+    (greenhouse, "dropbox"),        # remote US heavy
+    (greenhouse, "twilio"),         # cloud/comms
+    (greenhouse, "gitlab"),         # all-remote
+    (greenhouse, "datadog"),        # cloud/observability
+    (greenhouse, "airtable"),
     (greenhouse, "databricks"),     # data / cloud / AI
+    # --- the clearance / defense / govtech niche (bonus lane) ---
     (greenhouse, "scaleai"),        # AI, incl. defense arm
-    (greenhouse, "vannevarlabs"),   # national-security / defense AI (clearance niche)
-    (greenhouse, "primerai"),       # defense / govtech NLP (clearance niche)
-    (lever, "palantir"),            # defense / govtech (clearance niche)
+    (greenhouse, "vannevarlabs"),   # national-security / defense AI
+    (greenhouse, "primerai"),       # defense / govtech NLP
+    (lever, "palantir"),            # defense / govtech
 ]
 
 

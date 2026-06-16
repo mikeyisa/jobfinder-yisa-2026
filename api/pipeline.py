@@ -3,18 +3,20 @@ score. Tailoring + outreach run on demand (per job) to control cost."""
 from sqlalchemy.orm import Session
 
 import config
+import geo
 from models import Job, Score, Run
 import sources
 from agents import scorer
 
 
 def _prefilter(job: dict) -> tuple[float, bool]:
-    """Cheap keyword score + seniority flag — keeps Claude calls to the top N."""
+    """Cheap keyword + proximity score + seniority flag — keeps Claude calls to the
+    top N and biases them toward in-geo, level-appropriate roles."""
     text = (job["title"] + " " + job["description"]).lower()
     title = job["title"].lower()
     score = sum(1 for k in config.NICHE_KEYWORDS if k in text)
-    # weight title matches heavier
-    score += sum(2 for k in config.NICHE_KEYWORDS if k in title)
+    score += sum(2 for k in config.NICHE_KEYWORDS if k in title)  # title matches heavier
+    score += geo.proximity(job.get("location", ""))[0] / 20.0       # up to +5 for Austin
     too_senior = any(f in title for f in config.SENIOR_FLAGS)
     return float(score), too_senior
 
