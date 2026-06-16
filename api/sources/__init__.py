@@ -1,6 +1,9 @@
 """ToS-friendly, public, no-auth job sources only. NEVER LinkedIn or Indeed —
 automating those risks the candidate's own accounts."""
-from . import greenhouse, lever
+from . import greenhouse, lever, github_jobs
+
+NEWGRAD_URL = ("https://raw.githubusercontent.com/SimplifyJobs/"
+               "New-Grad-Positions/dev/.github/scripts/listings.json")
 
 # (source_module, company_token) — all verified live. Two lanes:
 # mainstream/junior-friendly (often Texas/in-geo + remote) AND the defense niche.
@@ -17,6 +20,13 @@ SEED_BOARDS = [
     (greenhouse, "datadog"),        # cloud/observability
     (greenhouse, "airtable"),
     (greenhouse, "databricks"),     # data / cloud / AI
+    # --- Texas-HQ / Austin physical roles ---
+    (greenhouse, "apptronik"),      # Austin — humanoid robotics
+    (greenhouse, "diligentrobotics"),  # Austin — robotics
+    (greenhouse, "setpoint"),       # Austin — fintech
+    (greenhouse, "selffinancial"),  # Austin — fintech
+    # --- community new-grad board: thousands of entry-level SWE roles ---
+    (github_jobs, NEWGRAD_URL),
     # --- the clearance / defense / govtech niche (bonus lane) ---
     (greenhouse, "scaleai"),        # AI, incl. defense arm
     (greenhouse, "vannevarlabs"),   # national-security / defense AI
