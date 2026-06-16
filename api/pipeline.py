@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 import config
 import geo
+import freshness
 from models import Job, Score, Run
 import sources
 from agents import scorer
@@ -17,6 +18,7 @@ def _prefilter(job: dict) -> tuple[float, bool]:
     score = sum(1 for k in config.NICHE_KEYWORDS if k in text)
     score += sum(2 for k in config.NICHE_KEYWORDS if k in title)  # title matches heavier
     score += geo.proximity(job.get("location", ""))[0] / 20.0       # up to +5 for Austin
+    score += freshness.score(job.get("posted_at")) / 20.0           # up to +5 for <24h
     too_senior = any(f in title for f in config.SENIOR_FLAGS)
     return float(score), too_senior
 

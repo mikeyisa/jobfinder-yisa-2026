@@ -2,9 +2,19 @@
 GET https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"""
 import re
 import html
+from datetime import datetime
 import httpx
 
 API = "https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
+
+
+def _parse(ts):
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    except Exception:
+        return None
 
 
 def _strip_html(s: str) -> str:
@@ -25,5 +35,6 @@ def fetch(token: str) -> list[dict]:
             "location": (j.get("location") or {}).get("name", ""),
             "url": j.get("absolute_url", ""),
             "description": _strip_html(j.get("content", ""))[:8000],
+            "posted_at": _parse(j.get("updated_at") or j.get("first_published")),
         })
     return out

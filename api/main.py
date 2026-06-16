@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 import config
 import geo
+import freshness
 import llm
 import pipeline
 import resume_builder
@@ -57,10 +58,15 @@ def api_run(db: Session = Depends(get_db)):
 def _job_dict(job: Job) -> dict:
     s = job.score
     loc_score, proximity = geo.proximity(job.location or "")
+    ah = freshness.age_hours(job.posted_at)
     return {
         "id": job.id, "source": job.source, "company": job.company,
         "title": job.title, "location": job.location, "url": job.url,
         "location_score": loc_score, "proximity": proximity,
+        "posted_at": job.posted_at.isoformat() if job.posted_at else None,
+        "age": freshness.label(job.posted_at),
+        "age_hours": round(ah, 1) if ah is not None else None,
+        "fresh": ah is not None and ah <= 24,
         "prefilter_score": job.prefilter_score, "too_senior": job.too_senior,
         "score": None if not s else {
             "fit_score": s.fit_score, "recommend": s.recommend,
@@ -74,18 +80,23 @@ def _job_dict(job: Job) -> dict:
 
 
 @app.get("/api/jobs")
-def api_jobs(scored_only: bool = True, db: Session = Depends(get_db)):
+def api_jobs(scored_only: bool = True, max_age_hours: float | None = None,
+             db: Session = Depends(get_db)):
     q = db.query(Job)
     if scored_only:
         q = q.join(Score)
     jobs = q.all()
+    if max_age_hours is not None:   # freshness filter (e.g. last 24h)
+        jobs = [j for j in jobs
+                if (a := freshness.age_hours(j.posted_at)) is not None and a <= max_age_hours]
 
     def rank(j):
         fit = j.score.fit_score if j.score else -1
         loc = geo.proximity(j.location or "")[0]
+        fresh = freshness.score(j.posted_at)
         rec = j.score.recommend if j.score else False
-        blended = fit * 0.62 + loc * 0.38          # fit-led, but proximity matters
-        return (not rec, -blended)                  # recommended first, then blended
+        blended = fit * 0.55 + loc * 0.30 + fresh * 0.15   # fit-led; proximity + recency
+        return (not rec, -blended)                          # recommended first
     jobs.sort(key=rank)
     return [_job_dict(j) for j in jobs]
 

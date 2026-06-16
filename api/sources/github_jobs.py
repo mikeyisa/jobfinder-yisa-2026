@@ -2,6 +2,7 @@
 community-maintained listings.json — thousands of entry-level SWE roles with
 structured company/title/location/sponsorship. Perfect for the junior lane.
 ToS-friendly (public raw file, no scraping)."""
+from datetime import datetime
 import httpx
 
 SWE = ("software", "engineer", "developer", "swe", "backend", "front end",
@@ -28,6 +29,8 @@ def fetch(url: str, cap: int = 400) -> list[dict]:
             "title": j.get("title", ""),
             "location": loc,
             "url": j.get("url") or j.get("company_url"),
+            "posted_at": (datetime.utcfromtimestamp(j["date_updated"] or j["date_posted"])
+                          if (j.get("date_updated") or j.get("date_posted")) else None),
             "description": (f"New-grad / entry-level software role: {j.get('title','')} "
                             f"at {j.get('company_name','')}. Locations: {loc}. "
                             f"Sponsorship: {spons}."),

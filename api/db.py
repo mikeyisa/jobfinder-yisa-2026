@@ -13,6 +13,13 @@ Base = declarative_base()
 def init_db():
     import models  # noqa: F401  (register tables)
     Base.metadata.create_all(bind=engine)
+    # best-effort migration for the posted_at column on pre-existing DBs
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        try:
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN posted_at TIMESTAMP"))
+        except Exception:
+            pass  # already exists
 
 
 def get_db():

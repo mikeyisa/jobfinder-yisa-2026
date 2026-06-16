@@ -2,6 +2,7 @@
 GET https://api.lever.co/v0/postings/{token}?mode=json"""
 import re
 import html
+from datetime import datetime
 import httpx
 
 API = "https://api.lever.co/v0/postings/{token}?mode=json"
@@ -29,5 +30,6 @@ def fetch(token: str) -> list[dict]:
             "location": cats.get("location", ""),
             "url": j.get("hostedUrl", ""),
             "description": _strip_html(j.get("descriptionPlain") or j.get("description", ""))[:8000],
+            "posted_at": datetime.utcfromtimestamp(j["createdAt"] / 1000) if j.get("createdAt") else None,
         })
     return out

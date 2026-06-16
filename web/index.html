@@ -111,6 +111,9 @@
   .act.primary{background:var(--signal);color:#10100c;border-color:var(--signal)}
   .act.primary:hover{filter:brightness(1.1);color:#10100c}
   .act.li{border-color:#2a4a63;color:#7fb4dd} .act.li:hover{border-color:#7fb4dd;color:#9fcdf0}
+  .fbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+    background:transparent;border:1px solid var(--line);color:var(--dim);padding:3px 9px;border-radius:2px;margin-left:4px}
+  .fbtn.on{border-color:var(--signal);color:var(--signal)}
   .kw{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);
     border:1px solid var(--line);padding:2px 8px;border-radius:1px;margin:3px 4px 0 0}
   .pre{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;line-height:1.6;color:var(--bone)}
@@ -154,7 +157,10 @@
 <main>
   <section class="panel targets">
     <div class="sect-head"><span class="num">[01]</span><h2>Targets</h2><span class="rule"></span>
-      <span class="lbl">ranked by fit</span></div>
+      <span class="lbl">posted:</span>
+      <button class="fbtn on" id="f-all" onclick="setFilter(null,'all')">all</button>
+      <button class="fbtn" id="f-24" onclick="setFilter(24,'24')">≤24h</button>
+      <button class="fbtn" id="f-168" onclick="setFilter(168,'168')">≤7d</button></div>
     <div id="targets" class="targets-list"></div>
     <div id="targetsEmpty" class="empty">No targets acquired. Initiate a sweep to pull &amp; rank live roles.</div>
   </section>
@@ -179,7 +185,7 @@
 
 <script>
 const $=s=>document.querySelector(s);
-let JOBS=[], SEL=null;
+let JOBS=[], SEL=null, FRESH=null;
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2800)};
 const pad=n=>String(n).padStart(3,'0');
@@ -195,6 +201,12 @@ function isMismatch(s){return s.seniority_match==='too_senior'||s.seniority_matc
 function titleHtml(title,s){
   if(isMismatch(s))return `<span class="redacted"><span class="rbar">${esc(title)}</span><span class="reqtag">redacted // req mismatch</span></span>`;
   return esc(title)}
+function freshStamp(j){if(!j.age||j.age==='—')return'';const c=j.fresh?'var(--go)':'var(--dim)';
+  return `<span class="stamp" style="color:${c};border-color:${c}">🕒 ${esc(j.age)}</span>`}
+function setFilter(hours,id){FRESH=hours;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  ({all:'f-all','24':'f-24','168':'f-168'}[id])&&document.getElementById(({all:'f-all','24':'f-24','168':'f-168'}[id])).classList.add('on');
+  loadJobs()}
 function proxStamp(j){const v=j.location_score||0,t=esc(j.proximity||'');
   const c=v>=84?'var(--go)':v>=55?'var(--signal)':v>=30?'var(--warn)':'var(--dim)';
   return `<span class="stamp" style="color:${c};border-color:${c}">⌖ ${t}</span>`}
@@ -213,10 +225,13 @@ async function loadStatus(){
   const k=$('#opKey');k.textContent=s.claude_key?'ACTIVE':'OFFLINE';k.className='v '+(s.claude_key?'on':'off');
 }
 async function loadJobs(){
-  JOBS=await (await fetch('/api/jobs')).json();
+  const url='/api/jobs?scored_only=true'+(FRESH?('&max_age_hours='+FRESH):'');
+  JOBS=await (await fetch(url)).json();
   $('#opCount').textContent=pad(JOBS.length);
   const el=$('#targets'),emp=$('#targetsEmpty');
   emp.style.display=JOBS.length?'none':'block';
+  emp.textContent=FRESH?`No scored roles posted in the last ${FRESH<=24?'24h':'7 days'}. Try a wider window or re-sweep.`
+    :'No targets acquired. Initiate a sweep to pull & rank live roles.';
   el.innerHTML=JOBS.map((j,i)=>{const s=j.score||{};
     return `<div class="tgt ${SEL===j.id?'sel':''} ${isMismatch(s)?'dim':''}" tabindex="0"
       onclick="open_(${j.id})" onkeydown="if(event.key==='Enter')open_(${j.id})">
@@ -225,7 +240,7 @@ async function loadJobs(){
         <div class="tgt-org">${esc(j.company)} · ${esc(j.location||'remote')} · ${j.source}</div>
         <div class="tgt-title">${titleHtml(j.title,s)}</div>
         ${meterBars(s.fit_score)}
-        <div class="stamps">${proxStamp(j)}${stampHtml(s)}</div>
+        <div class="stamps">${freshStamp(j)}${proxStamp(j)}${stampHtml(s)}</div>
       </div></div>`}).join('');
 }
 
@@ -241,7 +256,7 @@ async function open_(id){SEL=id;loadJobs();
     </div>
     <div class="readout">
       <div class="bigfit">${s.fit_score??'––'}</div>
-      <div>${meterBars(s.fit_score)}<div class="stamps">${proxStamp(j)}${stampHtml(s)||'<span class="stamp">unscored</span>'}</div></div>
+      <div>${meterBars(s.fit_score)}<div class="stamps">${freshStamp(j)}${proxStamp(j)}${stampHtml(s)||'<span class="stamp">unscored</span>'}</div></div>
     </div>
     <div class="blk"><h4>Fit assessment</h4><ul>${(s.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>
     <div class="blk"><h4>Gaps</h4><ul>${(s.gaps||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>—</li>'}</ul></div>

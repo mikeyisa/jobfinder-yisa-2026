@@ -22,6 +22,7 @@ class Job(Base):
     description = Column(Text)                    # plain-text JD
     prefilter_score = Column(Float, default=0.0)  # cheap heuristic
     too_senior = Column(Boolean, default=False)
+    posted_at = Column(DateTime, nullable=True)    # when the role was posted/updated
     created_at = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint("source", "company", "url", name="uq_job"),)
 
